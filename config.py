@@ -26,7 +26,10 @@ class Config:
     DAILY_SEND_LIMIT = int(os.getenv('DAILY_SEND_LIMIT', 50))
     
     # Database
-    DATABASE_PATH = os.path.join(os.path.dirname(__file__), 'outreach.db')
+    if os.getenv('VERCEL'):
+        DATABASE_PATH = '/tmp/outreach.db'
+    else:
+        DATABASE_PATH = os.path.join(os.path.dirname(__file__), 'outreach.db')
     
     # Scraper
     SCRAPE_TIMEOUT = 10  # seconds
@@ -37,7 +40,11 @@ class Config:
         return bool(cls.GMAIL_ADDRESS and cls.GMAIL_APP_PASSWORD)
     
     # Uploads
-    UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads')
+    if os.getenv('VERCEL'):
+        UPLOAD_FOLDER = '/tmp'
+    else:
+        UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads')
+
     ALLOWED_EXTENSIONS = {'pdf'}
     CV_FILENAME = os.getenv('CV_FILENAME', None)
     CV_ENABLED = os.getenv('CV_ENABLED', 'false').lower() == 'true'
