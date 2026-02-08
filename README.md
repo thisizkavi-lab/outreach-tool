@@ -1,4 +1,4 @@
-# Academic Outreach Automation Tool
+# Outreach Automation Tool
 
 A human-in-the-loop web application for contacting academic researchers. Built for prospective MS/PhD applicants who want to reach out for advice about funding, preparation, and research paths.
 
