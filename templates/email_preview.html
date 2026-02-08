@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}VALIDATION — Outreach{% endblock %}
+
+{% block progress %}
+<div class="progress-bar reveal">
+    <div class="progress-step">01 DISCOVERY</div>
+    <div class="progress-step">02 CONTACTS</div>
+    <div class="progress-step">03 SYNTHESIS</div>
+    <div class="progress-step active">04 VALIDATION</div>
+    <div class="progress-step">05 TRANSMISSION</div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="page-header reveal">
+    <h1 class="minimal-title">MESSAGE VALIDATION</h1>
+    <p class="subtitle">Individual audit of synthesized transmission units.</p>
+</div>
+
+<div class="validation-container reveal" style="animation-delay: 0.1s;">
+    <div class="validation-nav">
+        <div class="nav-meta">UNIT <span id="current-preview">1</span> / {{ previews|length }}</div>
+        <div class="nav-controls">
+            <button class="btn-text-minimal" onclick="prevEmail()">PREVIOUS</button>
+            <button class="btn-text-minimal" onclick="nextEmail()">NEXT</button>
+        </div>
+    </div>
+
+    <div class="message-stack" id="email-previews">
+        {% for preview in previews %}
+        <div class="message-unit {% if loop.first %}active{% endif %}" data-index="{{ loop.index0 }}">
+            <div class="unit-header">
+                <div class="header-row">
+                    <span class="header-label">TO_IDENTITY:</span>
+                    <span class="header-value">{{ preview.name }} &lt;{{ preview.email }}&gt;</span>
+                </div>
+                <div class="header-row">
+                    <span class="header-label">SUBJECT_HEADER:</span>
+                    <span class="header-value">{{ preview.subject }}</span>
+                </div>
+            </div>
+            <div class="unit-body">
+                <div class="body-content">{{ preview.body }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="unit-navigator">
+        {% for preview in previews %}
+        <button class="unit-node {% if loop.first %}active{% endif %}" onclick="goToEmail({{ loop.index0 }})"
+            title="{{ preview.name }}">
+        </button>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="validation-box reveal" style="animation-delay: 0.2s;">
+    <label class="checkbox-minimal">
+        <input type="checkbox" id="confirm-check">
+        <span class="checkbox-text">I HAVE VALIDATED ALL {{ previews|length }} TRANSMISSION UNITS.</span>
+    </label>
+</div>
+
+<div class="action-bar-minimal reveal" style="animation-delay: 0.3s;">
+    <a href="{{ url_for('template') }}" class="btn-secondary-minimal">← SYNTHESIS</a>
+    <button class="btn btn-hero" onclick="proceedToSchedule()" id="proceed-btn" disabled middle>
+        <span>INITIALIZE TRANSMISSION</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+        </svg>
+    </button>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let currentIndex = 0;
+    const totalEmails = {{ previews| length }};
+
+    function showEmail(index) {
+        const units = document.querySelectorAll('.message-unit');
+        const nodes = document.querySelectorAll('.unit-node');
+
+        units.forEach((unit, i) => {
+            unit.classList.toggle('active', i === index);
+        });
+
+        nodes.forEach((node, i) => {
+            node.classList.toggle('active', i === index);
+        });
+
+        currentIndex = index;
+        document.getElementById('current-preview').textContent = index + 1;
+    }
+
+    function nextEmail() {
+        if (currentIndex < totalEmails - 1) {
+            showEmail(currentIndex + 1);
+        }
+    }
+
+    function prevEmail() {
+        if (currentIndex > 0) {
+            showEmail(currentIndex - 1);
+        }
+    }
+
+    function goToEmail(index) {
+        showEmail(index);
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') nextEmail();
+        if (e.key === 'ArrowLeft') prevEmail();
+    });
+
+    // Confirmation checkbox
+    const confirmCheck = document.getElementById('confirm-check');
+    const proceedBtn = document.getElementById('proceed-btn');
+
+    if (confirmCheck && proceedBtn) {
+        confirmCheck.addEventListener('change', function () {
+            proceedBtn.disabled = !this.checked;
+        });
+    }
+
+    function proceedToSchedule() {
+        if (confirmCheck && !confirmCheck.checked) {
+            alert('Please confirm you have reviewed all emails');
+            return;
+        }
+        window.location.href = "{{ url_for('schedule') }}";
+    }
+</script>
+{% endblock %}

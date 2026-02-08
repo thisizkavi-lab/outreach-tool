@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}CONTACTS — Outreach{% endblock %}
+
+{% block progress %}
+<div class="progress-bar reveal">
+    <div class="progress-step">01 DISCOVERY</div>
+    <div class="progress-step active">02 CONTACTS</div>
+    <div class="progress-step">03 SYNTHESIS</div>
+    <div class="progress-step">04 VALIDATION</div>
+    <div class="progress-step">05 TRANSMISSION</div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="page-header reveal">
+    <h1 class="minimal-title">CONTACT AUDIT</h1>
+    <p class="subtitle">Review and validate extracted academic identities.</p>
+    <p class="source-info minimal-source">SOURCE: <a href="{{ source_url }}" target="_blank">{{ source_url }}</a></p>
+</div>
+
+<div class="card-minimal reveal" style="animation-delay: 0.1s;">
+    <div class="table-header-minimal">
+        <span class="preview-count"><strong id="contact-count">{{ contacts|length }}</strong> UNITS IDENTIFIED</span>
+        <div class="batch-actions-minimal">
+            <button class="btn-text-minimal" onclick="selectAll()">SELECT_ALL</button>
+            <button class="btn-text-minimal" onclick="deselectAll()">DESELECT_ALL</button>
+            <button class="btn-text-minimal danger" onclick="deleteSelected()">DELETE_SELECTED</button>
+        </div>
+    </div>
+
+    <div class="table-minimal-wrapper">
+        <table class="table-minimal" id="contacts-table">
+            <thead>
+                <tr>
+                    <th width="60" class="col-center"><input type="checkbox" id="select-all"
+                            onchange="toggleSelectAll()" class="minimal-checkbox"></th>
+                    <th width="300">IDENTITY_NAME</th>
+                    <th>IDENTITY_EMAIL</th>
+                    <th width="100" class="col-center">MOD</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for contact in contacts %}
+                <tr data-index="{{ loop.index0 }}">
+                    <td class="col-center">
+                        <input type="checkbox" class="contact-checkbox minimal-checkbox" checked>
+                    </td>
+                    <td>
+                        <input type="text" class="minimal-inline-edit name-input" value="{{ contact.name }}">
+                    </td>
+                    <td>
+                        <input type="email" class="minimal-inline-edit email-input" value="{{ contact.email }}">
+                    </td>
+                    <td class="col-center">
+                        <button class="btn-row-action" onclick="deleteRow(this)" title="Remove">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="action-bar-minimal reveal" style="animation-delay: 0.2s;">
+    <a href="{{ url_for('index') }}" class="btn-secondary-minimal">← DISCOVERY</a>
+    <button class="btn btn-hero" onclick="saveAndProceed()">
+        <span>INITIALIZE SYNTHESIS</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M5 12h14m-7-7l7 7-7 7" />
+        </svg>
+    </button>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function getSelectedContacts() {
+        const rows = document.querySelectorAll('#contacts-table tbody tr');
+        const contacts = [];
+
+        rows.forEach(row => {
+            const checkbox = row.querySelector('.contact-checkbox');
+            if (checkbox && checkbox.checked) {
+                contacts.push({
+                    name: row.querySelector('.name-input').value,
+                    email: row.querySelector('.email-input').value,
+                    source: '{{ source_url }}'
+                });
+            }
+        });
+
+        return contacts;
+    }
+
+    function selectAll() {
+        document.querySelectorAll('.contact-checkbox').forEach(cb => cb.checked = true);
+        document.getElementById('select-all').checked = true;
+    }
+
+    function deselectAll() {
+        document.querySelectorAll('.contact-checkbox').forEach(cb => cb.checked = false);
+        document.getElementById('select-all').checked = false;
+    }
+
+    function toggleSelectAll() {
+        const selectAll = document.getElementById('select-all').checked;
+        document.querySelectorAll('.contact-checkbox').forEach(cb => cb.checked = selectAll);
+    }
+
+    function deleteRow(btn) {
+        const row = btn.closest('tr');
+        row.remove();
+        updateCount();
+    }
+
+    function deleteSelected() {
+        const checkboxes = document.querySelectorAll('.contact-checkbox:checked');
+        if (checkboxes.length === 0) {
+            alert('No contacts selected');
+            return;
+        }
+
+        if (confirm(`Delete ${checkboxes.length} selected contact(s)?`)) {
+            checkboxes.forEach(cb => cb.closest('tr').remove());
+            updateCount();
+        }
+    }
+
+    function updateCount() {
+        const count = document.querySelectorAll('#contacts-table tbody tr').length;
+        document.querySelector('.contact-count').textContent = `${count} contact(s) found`;
+    }
+
+    async function saveAndProceed() {
+        const contacts = getSelectedContacts();
+
+        if (contacts.length === 0) {
+            alert('Please select at least one contact');
+            return;
+        }
+
+        try {
+            const response = await fetch('/update_contacts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contacts })
+            });
+
+            if (response.ok) {
+                window.location.href = '/template';
+            } else {
+                alert('Failed to save contacts');
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,14 @@
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+.DS_Store
+
+# Data
+outreach.db
+*.sqlite
+uploads/*
+!uploads/.gitkeep

@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}Outreach — Modern Academic Communication{% endblock %}
+
+{% block content %}
+<div class="landing-hero reveal">
+    <div class="hero-label">Automated. Personal. Precise.</div>
+    <h1 class="hero-title">REDEFINING<br>OUTREACH</h1>
+    <p class="hero-subtitle">
+        Scale your academic connections with a sophisticated, human-first communication platform.
+    </p>
+    <div class="hero-cta-group">
+        <a href="{{ url_for('scrape_page') }}" class="btn btn-primary btn-hero">
+            <span>GET STARTED</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M5 12h14m-7-7l7 7-7 7" />
+            </svg>
+        </a>
+    </div>
+</div>
+
+<div class="motion-grid reveal" style="animation-delay: 0.2s;">
+    <div class="motion-card float">
+        <div class="card-inner">
+            <div class="card-label">01</div>
+            <h3>EPHEMERAL DATA</h3>
+            <p>High-precision scraping with zero data persistence beyond your session.</p>
+        </div>
+    </div>
+    <div class="motion-card float" style="animation-delay: 1s;">
+        <div class="card-inner">
+            <div class="card-label">02</div>
+            <h3>BROWSER ENGINE</h3>
+            <p>Advanced Playwright integration to bypass dynamic content barriers.</p>
+        </div>
+    </div>
+    <div class="motion-card float" style="animation-delay: 2s;">
+        <div class="card-inner">
+            <div class="card-label">03</div>
+            <h3>HUMAN-FIRST</h3>
+            <p>Built-in verification safeguards to ensure intentional communication.</p>
+        </div>
+    </div>
+</div>
+
+<div class="workflow-section reveal" style="animation-delay: 0.4s;">
+    <div class="section-title">ENGINE ARCHITECTURE</div>
+    <div class="workflow-steps">
+        <div class="workflow-step">
+            <span class="step-line"></span>
+            <div class="step-content">
+                <h4>DISCOVERY</h4>
+                <p>Neural-path extraction of academic identities.</p>
+            </div>
+        </div>
+        <div class="workflow-step">
+            <span class="step-line"></span>
+            <div class="step-content">
+                <h4>SYNTHESIS</h4>
+                <p>Variable-aware template generation.</p>
+            </div>
+        </div>
+        <div class="workflow-step">
+            <span class="step-line"></span>
+            <div class="step-content">
+                <h4>TRANSMISSION</h4>
+                <p>Rate-limited SMTP relay with full verification.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="quick-actions reveal" style="animation-delay: 0.6s;">
+    <div class="action-grid">
+        <a href="{{ url_for('preview') }}" class="action-item">VIEW CONTACTS</a>
+        <a href="{{ url_for('template') }}" class="action-item">EDIT TEMPLATE</a>
+        <a href="{{ url_for('status') }}" class="action-item">SYSTEM STATUS</a>
+        <a href="{{ url_for('settings') }}" class="action-item">CONFIG</a>
+    </div>
+</div>
+
+{% block head %}
+<style>
+    .landing-hero {
+        text-align: center;
+        padding: 10rem 0 6rem;
+        /* More breathing room */
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .hero-label {
+        font-size: 0.75rem;
+        font-weight: 900;
+        letter-spacing: 0.4em;
+        text-transform: uppercase;
+        margin-bottom: 2.5rem;
+        color: var(--color-text-muted);
+    }
+
+    .hero-title {
+        font-size: 5rem;
+        /* Slightly smaller for better focus */
+        line-height: 1;
+        margin-bottom: 2.5rem;
+        letter-spacing: -0.05em;
+        font-weight: 900;
+    }
+
+    .hero-subtitle {
+        font-size: 1.15rem;
+        max-width: 480px;
+        margin: 0 auto 4rem;
+        color: var(--color-text-secondary);
+        line-height: 1.6;
+    }
+
+    .btn-hero {
+        padding: 1.5rem 4rem;
+        font-size: 0.85rem;
+        font-weight: 900;
+        display: inline-flex;
+        align-items: center;
+        gap: 1.5rem;
+        border: var(--border-width) solid var(--color-border);
+        background: black;
+        color: white;
+        transition: var(--transition);
+        letter-spacing: 0.1em;
+    }
+
+    .btn-hero:hover {
+        background: white;
+        color: black;
+        transform: translateY(-5px);
+    }
+
+    .motion-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2.5rem;
+        padding: 6rem 0;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .motion-card {
+        border: var(--border-width) solid var(--color-border);
+        padding: 2.5rem;
+        min-height: 250px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        transition: var(--transition);
+    }
+
+    .motion-card:hover {
+        background: black;
+        color: white;
+    }
+
+    .motion-card h3 {
+        margin-bottom: 1rem;
+    }
+
+    .card-label {
+        font-size: 0.75rem;
+        font-weight: 900;
+        margin-bottom: auto;
+    }
+
+    .workflow-section {
+        padding: 6rem 0;
+        border-top: var(--border-width) solid var(--color-border);
+    }
+
+    .section-title {
+        font-size: 0.75rem;
+        font-weight: 900;
+        letter-spacing: 0.2rem;
+        margin-bottom: 3rem;
+    }
+
+    .workflow-steps {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 4rem;
+    }
+
+    .step-line {
+        display: block;
+        height: var(--border-width);
+        background: black;
+        width: 100%;
+        margin-bottom: 1.5rem;
+    }
+
+    .quick-actions {
+        padding: 4rem 0 8rem;
+        border-top: var(--border-width) solid var(--color-border);
+    }
+
+    .action-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+    }
+
+    .action-item {
+        font-size: 0.75rem;
+        font-weight: 900;
+        text-align: center;
+        padding: 1.5rem;
+        border: var(--border-width) solid var(--color-border);
+        transition: var(--transition);
+    }
+
+    .action-item:hover {
+        background: black;
+        color: white;
+    }
+</style>
+{% endblock %}
+{% endblock %}

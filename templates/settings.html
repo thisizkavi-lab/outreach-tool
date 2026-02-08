@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block title %}CONFIGURATION — Outreach{% endblock %}
+
+{% block content %}
+<div class="page-header reveal">
+    <h1 class="minimal-title">SYSTEM_CONFIG</h1>
+    <p class="subtitle">Initialize communication subsystem and security parameters.</p>
+</div>
+
+<div class="settings-grid-minimal reveal" style="animation-delay: 0.1s;">
+    <!-- Main Column: Credential & CV Vaults -->
+    <div class="settings-main-column">
+        <!-- Configuration Form -->
+        <div class="card-minimal">
+            <div class="card-header-minimal">
+                <h2 class="section-label-minimal">CREDENTIAL_VAULT</h2>
+            </div>
+
+            <form action="{{ url_for('save_settings') }}" method="POST" id="settings-form">
+                <div class="form-group">
+                    <label for="email">GMAIL_ADDRESS</label>
+                    <input type="email" id="email" name="email" placeholder="identity@gmail.com"
+                        value="{{ current_email or '' }}" required class="minimal-input">
+                </div>
+
+                <div class="form-group">
+                    <label for="app_password">APP_ACCESS_KEY</label>
+                    <input type="password" id="app_password" name="app_password" placeholder="XXXX XXXX XXXX XXXX"
+                        required class="minimal-input">
+                </div>
+
+                <div class="protocol-guide-minimal">
+                    <div class="guide-label">INITIALIZATION_STEPS</div>
+                    <div class="step-minimal">
+                        <span class="step-id">01</span>
+                        <p>Enable 2-Step Verification in Google Security.</p>
+                    </div>
+                    <div class="step-minimal">
+                        <span class="step-id">02</span>
+                        <p>Generate "App Password" for Mail category.</p>
+                    </div>
+                    <div class="step-minimal">
+                        <span class="step-id">03</span>
+                        <p>Commit the 16-character key to this vault.</p>
+                    </div>
+                </div>
+
+                <div class="form-actions-minimal">
+                    <button type="submit" class="btn btn-hero" id="save-btn">
+                        <span>COMMIT & VALIDATE</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <path
+                                d="M12 15l-3-3m0 0l3-3m-3 3h8M4 17a1 1 0 01-1-1V8a1 1 0 011-1h16a1 1 0 011 1v8a1 1 0 01-1 1H4z" />
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- CV Vault -->
+        <div class="card-minimal" style="margin-top: 2.5rem;">
+            <div class="card-header-minimal"
+                style="margin-bottom: 2rem; border-bottom: var(--border-width) solid var(--color-border); padding-bottom: 1rem;">
+                <h2 class="section-label-minimal" style="margin: 0;">CV_VAULT</h2>
+            </div>
+
+            <div class="current-cv-status" style="margin-bottom: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <div>
+                        <div class="meta-label"
+                            style="font-size: 0.65rem; font-weight: 900; color: #666; margin-bottom: 0.5rem;">
+                            CURRENT_FILE
+                        </div>
+                        <div class="cv-filename" style="font-weight: 700; font-family: 'IBM Plex Mono', monospace;">
+                            {% if cv_filename %}
+                            {{ cv_filename }}
+                            {% else %}
+                            <span style="color: #999;">NO_FILE_UPLOADED</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if cv_filename %}
+                    <form action="{{ url_for('remove_cv') }}" method="POST">
+                        <button type="submit" class="btn btn-secondary-minimal"
+                            style="padding: 0.5rem 1rem; font-size: 0.65rem; border: 1px solid #ccc;">REMOVE</button>
+                    </form>
+                    {% endif %}
+                </div>
+
+                {% if cv_filename %}
+                <form action="{{ url_for('toggle_cv') }}" method="POST">
+                    <label class="checkbox-minimal" style="margin-bottom: 0;">
+                        <input type="checkbox" name="cv_enabled" onchange="this.form.submit()" {% if cv_enabled
+                            %}checked{% endif %}>
+                        <span>ATTACH_TO_EMAILS</span>
+                    </label>
+                </form>
+                {% endif %}
+            </div>
+
+            <div class="upload-section" style="border-top: var(--border-width) solid #eee; padding-top: 2rem;">
+                <form action="{{ url_for('upload_cv') }}" method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="cv_file"
+                            style="font-size: 0.75rem; font-weight: 900; margin-bottom: 1rem; display: block;">UPLOAD_NEW_PDF</label>
+                        <div style="display: flex; gap: 1rem; align-items: center;">
+                            <input type="file" id="cv_file" name="cv_file" accept=".pdf" class="minimal-input"
+                                style="padding: 0.75rem;">
+                            <button type="submit" class="btn btn-primary"
+                                style="padding: 1rem 2rem; background: black; color: white; border: none; font-weight: 900; font-size: 0.75rem;">UPLOAD</button>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.7rem; color: #888; margin-top: 0.5rem;">* Restricted to .pdf format.</p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Sidebar -->
+    <div class="settings-sidebar-minimal">
+        <div class="status-panel-minimal {% if email_configured %}active{% endif %}">
+            <div class="card-label">SUBSYSTEM_STATUS</div>
+            <div class="status-display">
+                <div class="status-dot"></div>
+                <span class="status-text">
+                    {% if email_configured %}
+                    OPERATIONAL
+                    {% else %}
+                    REQUIRE_CONFIG
+                    {% endif %}
+                </span>
+            </div>
+
+            {% if email_configured %}
+            <div class="status-meta">
+                <span class="meta-label">ID:</span>
+                <span class="meta-value">{{ current_email }}</span>
+            </div>
+            <a href="{{ url_for('verify_email') }}" class="btn btn-secondary-minimal"
+                style="width: 100%; margin-top: 1.5rem;">
+                RE-VALIDATE
+            </a>
+            {% endif %}
+        </div>
+
+        <div class="info-card-minimal">
+            <div class="card-label">SECURITY_NOTE</div>
+            <p>Credentials are persisted locally in <code>.env</code>. Zero external transmission layer beyond SMTP
+                relay.</p>
+        </div>
+    </div>
+</div>
+
+{% if email_configured %}
+<div class="next-phase-minimal reveal" style="animation-delay: 0.2s;">
+    <div class="next-meta">
+        <h3>READY FOR DISCOVERY</h3>
+        <p>Communication subsystem is verified. Proceeding to identity extraction.</p>
+    </div>
+    <a href="{{ url_for('index') }}" class="btn btn-hero" style="width: auto; padding: 1.5rem 4rem;">
+        <span>INITIALIZE ENGINE</span>
+    </a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block head %}
+<style>
+    .settings-grid-minimal {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 2.5rem;
+    }
+
+    @media (max-width: 900px) {
+        .settings-grid-minimal {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .status-panel-minimal {
+        border: var(--border-width) solid var(--color-border);
+        padding: 2.5rem;
+        /* Increased for balance */
+        margin-bottom: 2rem;
+    }
+
+    .status-display {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 1rem;
+        font-weight: 900;
+        font-size: 0.85rem;
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        background: #ccc;
+    }
+
+    .status-panel-minimal.active .status-dot {
+        background: black;
+        box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .status-meta {
+        margin-top: 2rem;
+        font-size: 0.75rem;
+        border-top: calc(var(--border-width)/2) solid #eee;
+        padding-top: 1rem;
+    }
+
+    .meta-value {
+        font-weight: 700;
+        word-break: break-all;
+    }
+
+    .protocol-guide-minimal {
+        margin: 3rem 0;
+        padding: 2rem;
+        background: #f9f9f9;
+        border-left: var(--border-width) solid black;
+    }
+
+    .guide-label {
+        font-size: 0.65rem;
+        font-weight: 900;
+        margin-bottom: 1.5rem;
+    }
+
+    .step-minimal {
+        display: flex;
+        gap: 1.5rem;
+        margin-bottom: 1rem;
+        font-size: 0.85rem;
+    }
+
+    .step-id {
+        font-weight: 900;
+        color: #ccc;
+    }
+
+    .info-card-minimal {
+        border: var(--border-width) solid #eee;
+        padding: 2rem;
+        /* Increased for consistency */
+        font-size: 0.8rem;
+    }
+
+    .next-phase-minimal {
+        margin-top: 4rem;
+        padding: 3rem;
+        background: black;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .next-meta h3 {
+        margin-bottom: 0.5rem;
+    }
+
+    .next-meta p {
+        opacity: 0.7;
+    }
+</style>
+{% endblock %}

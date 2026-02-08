@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}TRANSMISSION — Outreach{% endblock %}
+
+{% block progress %}
+<div class="progress-bar reveal">
+    <div class="progress-step">01 DISCOVERY</div>
+    <div class="progress-step">02 CONTACTS</div>
+    <div class="progress-step">03 SYNTHESIS</div>
+    <div class="progress-step">04 VALIDATION</div>
+    <div class="progress-step active">05 TRANSMISSION</div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="page-header reveal">
+    <h1 class="minimal-title">TRANSMISSION PROTOCOL</h1>
+    <p class="subtitle">Finalize delivery parameters for {{ contact_count }} synthesized units.</p>
+</div>
+
+{% if not email_configured %}
+<div class="alert-minimal reveal">
+    <div class="alert-header">CONFIGURATION_ERROR</div>
+    <p>SMTP subsystem is not initialized. Credentials required.</p>
+    <a href="{{ url_for('settings') }}" class="btn-text-minimal">INITIALIZE CONFIG</a>
+</div>
+{% else %}
+
+<div class="transmission-grid reveal" style="animation-delay: 0.1s;">
+    <div class="transmission-card">
+        <div class="card-label">MODE_01</div>
+        <h3>IMMEDIATE_RELAY</h3>
+        <p>Asynchronous delivery with jitter-based rate limiting (30-60s delay).</p>
+        <form action="{{ url_for('send_now') }}" method="POST">
+            <button type="submit" class="btn btn-hero">
+                <span>EXECUTE NOW</span>
+            </button>
+        </form>
+    </div>
+
+    <div class="transmission-card">
+        <div class="card-label">MODE_02</div>
+        <h3>SCHEDULED_RELAY</h3>
+        <p>Deferred delivery via system task scheduler.</p>
+        <form action="{{ url_for('schedule_send') }}" method="POST">
+            <div class="form-group">
+                <label for="send_datetime">TARGET_ISO_DATETIME</label>
+                <input type="datetime-local" id="send_datetime" name="send_datetime" required min="{{ now }}"
+                    class="minimal-input">
+            </div>
+            <button type="submit" class="btn btn-hero">
+                <span>COMMIT SCHEDULE</span>
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="transmission-stats reveal" style="animation-delay: 0.2s;">
+    <div class="stat-unit">
+        <div class="stat-label">DAILY_QUOTA_SENT</div>
+        <div class="stat-value">{{ today_sent }}</div>
+    </div>
+    <div class="stat-unit">
+        <div class="stat-label">SYSTEM_LIMIT</div>
+        <div class="stat-value">{{ daily_limit }}</div>
+    </div>
+    <div class="stat-unit">
+        <div class="stat-label">REMAINING_CAPACITY</div>
+        <div class="stat-value">{{ daily_limit - today_sent }}</div>
+    </div>
+</div>
+
+{% endif %}
+
+<div class="action-bar-minimal reveal" style="animation-delay: 0.3s;">
+    <a href="{{ url_for('email_preview') }}" class="btn-secondary-minimal">← VALIDATION</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Set min datetime to now
+    const datetimeInput = document.getElementById('send_datetime');
+    if (datetimeInput) {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        datetimeInput.min = now.toISOString().slice(0, 16);
+    }
+</script>
+{% endblock %}

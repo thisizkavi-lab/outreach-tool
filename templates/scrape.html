@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block title %}DISCOVERY — Outreach{% endblock %}
+
+{% block progress %}
+<div class="progress-bar reveal">
+    <div class="progress-step active">01 DISCOVERY</div>
+    <div class="progress-step">02 CONTACTS</div>
+    <div class="progress-step">03 SYNTHESIS</div>
+    <div class="progress-step">04 VALIDATION</div>
+    <div class="progress-step">05 TRANSMISSION</div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="page-header reveal">
+    <h1 class="minimal-title">DISCOVERY ENGINE</h1>
+    <p class="subtitle">Extract academic identities from target domains.</p>
+</div>
+
+<div class="card-minimal reveal" style="animation-delay: 0.1s;">
+    <div class="scrape-form" id="scrape-form-container">
+        <div class="form-group">
+            <label for="url">TARGET URL</label>
+            <input type="url" id="url" name="url" placeholder="https://university.edu/directory" required autofocus
+                class="minimal-input">
+        </div>
+
+        <div class="form-group-row">
+            <div class="form-group">
+                <label for="max_profiles">SCAN DEPTH</label>
+                <select id="max_profiles" name="max_profiles" class="minimal-select">
+                    <option value="50">50 IDENTITY UNITS</option>
+                    <option value="100" selected>100 IDENTITY UNITS</option>
+                    <option value="250">250 IDENTITY UNITS</option>
+                    <option value="500">500 IDENTITY UNITS</option>
+                    <option value="1000">1000 IDENTITY UNITS</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-minimal">
+                    <input type="checkbox" id="browser_mode" name="browser_mode">
+                    <span class="checkbox-text">ADVANCED BROWSER ENGINE (PLAYWRIGHT)</span>
+                </label>
+            </div>
+        </div>
+
+        <button type="button" class="btn btn-hero" id="start-btn" onclick="startScraping()">
+            <span>INITIALIZE DISCOVERY</span>
+        </button>
+    </div>
+
+    <!-- Terminal Output -->
+    <div class="terminal-minimal" id="terminal-container" style="display: none;">
+        <div class="terminal-header-minimal">
+            <span class="terminal-title">STDOUT: DISCOVERY_LOG</span>
+            <span class="terminal-status" id="terminal-status">PROCESSING</span>
+        </div>
+        <div class="terminal-body" id="terminal">
+            <div class="terminal-line">>> WAIT_FOR_INPUT...</div>
+        </div>
+        <div class="terminal-progress-minimal">
+            <div class="progress-fill" id="progress-bar" style="width: 0%"></div>
+        </div>
+    </div>
+
+    <!-- Results Summary -->
+    <div class="results-minimal" id="results-summary" style="display: none;">
+        <div class="results-header-minimal">
+            <span class="results-title">DISCOVERY PHASE COMPLETE</span>
+        </div>
+        <div class="results-meta">
+            <div class="meta-item">
+                <div class="meta-label">IDENTITIES FOUND</div>
+                <div class="meta-value" id="total-contacts">0</div>
+            </div>
+        </div>
+        <div class="results-actions">
+            <button class="btn btn-hero" id="continue-btn" onclick="continueToPreview()">
+                <span>CONTINUE TO SYNTHESIS</span>
+            </button>
+            <button class="btn btn-secondary-minimal" onclick="resetForm()">
+                REINITIALIZE
+            </button>
+        </div>
+        <div class="export-group-minimal">
+            <span class="export-label">EXPORT:</span>
+            <a href="/export/csv" class="export-link">CSV</a>
+            <a href="/export/json" class="export-link">JSON</a>
+        </div>
+    </div>
+
+    <!-- Contacts Table Preview -->
+    <div class="preview-minimal" id="contacts-preview" style="display: none;">
+        <div class="preview-header">
+            <span class="preview-count" id="contact-count">INITIALIZING...</span>
+        </div>
+        <div class="table-minimal-wrapper">
+            <table class="table-minimal">
+                <thead>
+                    <tr>
+                        <th width="80">ID</th>
+                        <th>NAME</th>
+                        <th>EMAIL</th>
+                    </tr>
+                </thead>
+                <tbody id="contacts-tbody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="architecture-grid reveal" style="animation-delay: 0.3s;">
+    <div class="arch-card">
+        <div class="arch-label">LAYER_01</div>
+        <h4>DEEP_EXTRACTION</h4>
+        <p>Recursive path discovery for hidden metadata.</p>
+    </div>
+    <div class="arch-card">
+        <div class="arch-label">LAYER_02</div>
+        <h4>REAL_TIME_STREAM</h4>
+        <p>Event-buffered synchronization of discovery states.</p>
+    </div>
+    <div class="arch-card">
+        <div class="arch-label">LAYER_03</div>
+        <h4>BATCH_SYNC</h4>
+        <p>Optimized for high-density academic directories.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let eventSource = null;
+    let contacts = [];
+
+    function startScraping() {
+        const url = document.getElementById('url').value.trim();
+        const maxProfiles = document.getElementById('max_profiles').value;
+        const browserMode = document.getElementById('browser_mode').checked;
+
+        if (!url) {
+            alert('Please enter a URL');
+            return;
+        }
+
+        // Reset state
+        contacts = [];
+        document.getElementById('contacts-tbody').innerHTML = '';
+        document.getElementById('terminal').innerHTML = '';
+        document.getElementById('progress-bar').style.width = '0%';
+
+        // Show terminal, hide form
+        document.getElementById('scrape-form-container').style.display = 'none';
+        document.getElementById('terminal-container').style.display = 'block';
+        document.getElementById('results-summary').style.display = 'none';
+        document.getElementById('contacts-preview').style.display = 'none';
+        document.getElementById('terminal-status').textContent = 'Running...';
+        document.getElementById('terminal-status').className = 'terminal-status running';
+
+        // Choose endpoint based on mode
+        const endpoint = browserMode ? '/scrape_browser_stream' : '/scrape_stream';
+        const params = new URLSearchParams({ url, max_profiles: maxProfiles });
+        eventSource = new EventSource(`${endpoint}?${params}`);
+
+        addTerminalLine('$ Starting scrape for: ' + url);
+        addTerminalLine('$ Max profiles: ' + maxProfiles);
+        if (browserMode) {
+            addTerminalLine('$ Mode: Browser (handles Load More buttons)');
+        }
+        addTerminalLine('');
+
+
+        eventSource.onmessage = function (event) {
+            const data = JSON.parse(event.data);
+
+            if (data.type === 'progress') {
+                addTerminalLine(data.message);
+                if (data.total > 0) {
+                    const percent = (data.current / data.total) * 100;
+                    document.getElementById('progress-bar').style.width = percent + '%';
+                }
+            } else if (data.type === 'contact') {
+                const contact = data.contact;
+                contacts.push(contact);
+                addTerminalLine(`✅ [${data.index}] ${contact.name} - ${contact.email}`, 'success');
+                addContactRow(data.index, contact);
+            } else if (data.type === 'done') {
+                eventSource.close();
+                scrapingComplete(data.total);
+            } else if (data.type === 'error') {
+                addTerminalLine('❌ ERROR: ' + data.message, 'error');
+                eventSource.close();
+                document.getElementById('terminal-status').textContent = 'Error';
+                document.getElementById('terminal-status').className = 'terminal-status error';
+            }
+
+            // Auto scroll terminal
+            const terminal = document.getElementById('terminal');
+            terminal.scrollTop = terminal.scrollHeight;
+        };
+
+        eventSource.onerror = function () {
+            eventSource.close();
+            addTerminalLine('❌ Connection lost', 'error');
+            document.getElementById('terminal-status').textContent = 'Disconnected';
+            document.getElementById('terminal-status').className = 'terminal-status error';
+        };
+    }
+
+    function addTerminalLine(text, type = '') {
+        const terminal = document.getElementById('terminal');
+        const line = document.createElement('div');
+        line.className = 'terminal-line' + (type ? ' ' + type : '');
+        line.textContent = text;
+        terminal.appendChild(line);
+    }
+
+    function addContactRow(index, contact) {
+        const tbody = document.getElementById('contacts-tbody');
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${index}</td>
+            <td>${contact.name}</td>
+            <td>${contact.email}</td>
+        `;
+        tbody.appendChild(row);
+
+        // Show contacts preview
+        document.getElementById('contacts-preview').style.display = 'block';
+        document.getElementById('contact-count').textContent = `${contacts.length} contacts found:`;
+    }
+
+    function scrapingComplete(total) {
+        document.getElementById('terminal-status').textContent = 'Complete';
+        document.getElementById('terminal-status').className = 'terminal-status complete';
+        document.getElementById('progress-bar').style.width = '100%';
+
+        addTerminalLine('');
+        addTerminalLine('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        addTerminalLine(`🎉 COMPLETE: Found ${total} contacts`);
+        addTerminalLine('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+        // Show results
+        document.getElementById('results-summary').style.display = 'block';
+        document.getElementById('total-contacts').textContent = total;
+
+        // Store contacts on server
+        if (total > 0) {
+            fetch('/scrape_complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+    }
+
+    function continueToPreview() {
+        window.location.href = '/preview';
+    }
+
+    function resetForm() {
+        document.getElementById('scrape-form-container').style.display = 'block';
+        document.getElementById('terminal-container').style.display = 'none';
+        document.getElementById('results-summary').style.display = 'none';
+        document.getElementById('contacts-preview').style.display = 'none';
+        document.getElementById('url').value = '';
+        contacts = [];
+    }
+</script>
+{% endblock %}

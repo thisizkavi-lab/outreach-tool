@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}SYSTEM_STATUS — Outreach{% endblock %}
+
+{% block content %}
+<div class="page-header reveal">
+    <h1 class="minimal-title">SYSTEM MONITOR</h1>
+    <p class="subtitle">Real-time tracking of outreach transmission states.</p>
+</div>
+
+<div class="transmission-stats reveal" style="animation-delay: 0.1s; margin-bottom: 4rem;">
+    <div class="stat-unit">
+        <div class="stat-label">SENT_TODAY</div>
+        <div class="stat-value">{{ today_sent }}</div>
+    </div>
+    <div class="stat-unit">
+        <div class="stat-label">REMAINING_CAPACITY</div>
+        <div class="stat-value">{{ daily_limit - today_sent }}</div>
+    </div>
+    <div class="stat-unit">
+        <div class="stat-label">QUEUED_UNITS</div>
+        <div class="stat-value">{{ scheduled_jobs|length }}</div>
+    </div>
+    <div class="stat-unit">
+        <div class="stat-label">TOTAL_PROTOCOLS</div>
+        <div class="stat-value">{{ logs|length }}</div>
+    </div>
+</div>
+
+{% if scheduled_jobs %}
+<div class="card-minimal reveal" style="animation-delay: 0.2s; margin-bottom: 4rem;">
+    <h2 class="section-label-minimal">SCHEDULE_QUEUE</h2>
+    <div class="table-minimal-wrapper">
+        <table class="table-minimal">
+            <thead>
+                <tr>
+                    <th>JOB_ID</th>
+                    <th>TARGET_EXECUTION_TIME</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in scheduled_jobs %}
+                <tr>
+                    <td><code>{{ job.id }}</code></td>
+                    <td>{{ job.next_run }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<div class="card-minimal reveal" style="animation-delay: 0.3s;">
+    <h2 class="section-label-minimal">TRANSMISSION_LOGS</h2>
+
+    {% if logs %}
+    <div class="table-minimal-wrapper">
+        <table class="table-minimal">
+            <thead>
+                <tr>
+                    <th width="120">STATUS</th>
+                    <th>IDENTITY_NAME</th>
+                    <th>EMAIL</th>
+                    <th>SUBJECT_HEADER</th>
+                    <th>TIMESTAMP</th>
+                    <th>SYSERR_LOG</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr class="log-row-{{ log.status }}">
+                    <td>
+                        <span class="badge-minimal badge-{{ log.status }}">
+                            {{ log.status|upper }}
+                        </span>
+                    </td>
+                    <td>{{ log.name }}</td>
+                    <td>{{ log.email }}</td>
+                    <td>{{ log.subject[:30] }}{% if log.subject|length > 30 %}...{% endif %}</td>
+                    <td>{{ log.sent_time or log.scheduled_time or log.created_at }}</td>
+                    <td class="log-error-cell">{{ log.error_message or '---' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state-minimal">
+        <p>NO TRANSMISSION HISTORY DETECTED</p>
+        <a href="{{ url_for('index') }}" class="btn btn-hero" style="width: auto; padding: 1rem 3rem;">INITIALIZE
+            DISCOVERY</a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="action-bar-minimal reveal" style="animation-delay: 0.4s; margin-top: 4rem;">
+    <a href="{{ url_for('index') }}" class="btn btn-hero" style="width: auto;">NEW PROTOCOL</a>
+    <button class="btn-secondary-minimal" onclick="location.reload()">SYNC_SYSTEM</button>
+</div>
+{% endblock %}

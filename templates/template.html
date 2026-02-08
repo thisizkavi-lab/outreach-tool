@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}SYNTHESIS — Outreach{% endblock %}
+
+{% block progress %}
+<div class="progress-bar reveal">
+    <div class="progress-step">01 DISCOVERY</div>
+    <div class="progress-step">02 CONTACTS</div>
+    <div class="progress-step active">03 SYNTHESIS</div>
+    <div class="progress-step">04 VALIDATION</div>
+    <div class="progress-step">05 TRANSMISSION</div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="page-header reveal">
+    <h1 class="minimal-title">COMMUNICATION SYNTHESIS</h1>
+    <p class="subtitle">Architect your outreach template with variable data pathing.</p>
+</div>
+
+<div class="synthesis-grid reveal" style="animation-delay: 0.1s;">
+    <div class="editor-minimal">
+        <form action="{{ url_for('save_template') }}" method="POST">
+            <div class="form-group">
+                <label for="subject">TRANSMISSION_SUBJECT</label>
+                <input type="text" id="subject" name="subject"
+                    placeholder="Inquiry: Academic collaboration regarding [topic]" value="{{ subject }}" required
+                    class="minimal-input">
+            </div>
+
+            <div class="form-group">
+                <label for="body">TRANSMISSION_BODY</label>
+                <textarea id="body" name="body" rows="18" placeholder="Dear {name},
+
+Your message architecture here..." required class="minimal-input mini-textarea">{{ body }}</textarea>
+            </div>
+
+            <div class="action-bar-minimal">
+                <a href="{{ url_for('preview') }}" class="btn-secondary-minimal">← CONTACTS</a>
+                <button type="submit" class="btn btn-hero">
+                    <span>INITIALIZE VALIDATION</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5">
+                        <path d="M5 12h14m-7-7l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="synthesis-sidebar">
+        <div class="sidebar-card">
+            <div class="card-label">DATASET_INFO</div>
+            <p><strong>{{ contact_count }}</strong> VALIDATED IDENTITIES SELECTED</p>
+        </div>
+
+        <div class="sidebar-card">
+            <div class="card-label">VARIABLES</div>
+            <div class="variable-item">
+                <code>{name}</code>
+                <span>IDENTIFIED_IDENTITY_NAME</span>
+            </div>
+        </div>
+
+        <div class="sidebar-card">
+            <div class="card-label">PROTOCOL_GUIDELINES</div>
+            <ul class="guideline-list">
+                <li>Optimize subject for high-density clarity.</li>
+                <li>Reference granular academic contributions.</li>
+                <li>Maintain formal transmission protocol.</li>
+                <li>Maximum recommended density: 200 units.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Character counter
+    const body = document.getElementById('body');
+    const updateCounter = () => {
+        const words = body.value.trim().split(/\s+/).filter(w => w).length;
+        // Could add visual feedback here
+    };
+    body.addEventListener('input', updateCounter);
+    updateCounter();
+</script>
+{% endblock %}
